@@ -1,7 +1,7 @@
 from tabnanny import verbose
 import time
 from django.db import models
-from pytz_deprecation_shim import timezone
+from time import timezone
 from .base_model import BaseModel
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
