@@ -2,10 +2,12 @@ from tabnanny import verbose
 import time
 from django.db import models
 from time import timezone
-from .base_model import BaseModel
+from .helpers.base_model import BaseModel
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
-from .customer import Customer
+from .helpers.customer import CustomerModel
+
+# from django.contrib.postgres.fields import ArrayField
 
 
 CURRENCY_CHOICES = {
@@ -72,18 +74,23 @@ class Transaction(BaseModel):
         null=True,
         blank=True,
     )
-    channels = models.ArrayField(
+    channels = models.CharField(
         _("Channels"),
+        max_length=100,
+        blank=True,
+        null=True,
         help_text=_(
             "Channels to be used for transaction. They include ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']"
         ),
     )
     split_code = models.CharField(
         _("Split Code"),
+        max_length=100,
         help_text=_("The split code of the transaction split. e.g. SPL_98WF13Eb3w"),
     )
     subaccount = models.CharField(
         _("Subaccount"),
+        max_length=100,
         help_text=_(
             "The code for the subaccount that owns the payment. e.g. ACCT_8f4s1eq7ml6rlzj"
         ),
@@ -94,6 +101,7 @@ class Transaction(BaseModel):
     )
     bearer = models.CharField(
         _("Bearer"),
+        max_length = 50,
         help_text=_(
             "Bearer of the transaction. can either be 'subaccount' or 'account'"
         ),
@@ -120,6 +128,7 @@ class Plan(BaseModel):
 
     interval = models.CharField(
         _("Interval"),
+        max_length=50,
         help_text=_(
             "Interval in words. Valid intervals are: daily, weekly, monthly,biannually, annually"
         ),
@@ -129,7 +138,7 @@ class Plan(BaseModel):
         _("Description"), help_text=_("A description for this plan")
     )
 
-    send_invoices = models.Boolean(
+    send_invoices = models.BooleanField(
         _("Send invoice to User"),
         default=False,
         help_text=_(
@@ -137,7 +146,7 @@ class Plan(BaseModel):
         ),
     )
 
-    send_sms = models.Boolean(
+    send_sms = models.BooleanField(
         _("Send SMS"),
         default=False,
         help_text=_(
@@ -170,11 +179,10 @@ class Plan(BaseModel):
         verbose_name_plural = _("Plans")
 
 
-class Subscription(BaseModel):
-    customer = models.ForeignKey("Customer", on_delete=models.CASCADE)
+class Subscription(CustomerModel):
     plan = models.ForeignKey(Plan, on_delete=models.CASCADE)
-    authorization = models.ForeignKey("Authorization", on_delete=models.SET_NULL)
-    start_date = models.DateTimeField(timezone.now())
+    authorization = models.JSONField(_("Authorization"), null=True, blank=True,help_text=_("Authorization of the transaction"))
+    start_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.customer} subscribed to {self.plan}"
@@ -184,8 +192,7 @@ class Subscription(BaseModel):
         verbose_name_plural = _("Subscriptions")
 
 
-class VirtualAccounts(BaseModel):
-    user = models.ForeignKey("User", on_delete=models.CASCADE)
+class VirtualAccounts(CustomerModel):
     account_name = models.CharField(
         _("Account Name"),
         help_text=_("Name of the account"),
@@ -218,16 +225,19 @@ class VirtualAccounts(BaseModel):
     )
     customer_id = models.CharField(
         _("Customer ID"),
+        max_length=255,
         help_text=_("Customer ID of the virtual account"),
     )
 
     assignee_id = models.CharField(
         _("Assignee ID"),
+        max_length=100,
         help_text=_("Assignee ID of the virtual account"),
     )
 
     account_type = models.CharField(
         _("Account Type"),
+        max_length=100,
         help_text=_("Account type of the virtual account"),
     )
 
@@ -236,7 +246,7 @@ class VirtualAccounts(BaseModel):
     )
 
     def __str__(self):
-        return f"{self.customer} virtual account {self.account_number}"
+        return f"virtual account {self.account_number}"
 
     class Meta:
         verbose_name = _("Virtual Account")
@@ -324,8 +334,7 @@ class Refund(BaseModel):
         return f"Refund for {self.transaction} amounted to {self.amount}"
 
 
-class Invoice(BaseModel):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+class Invoice(CustomerModel):
 
     amount = models.IntegerField(
         _("amount"),
@@ -349,8 +358,9 @@ class Invoice(BaseModel):
         auto_now=True,
     )
 
-    tax = models.ArrayField(
+    tax = models.CharField(
         _("Tax"),
+        max_length=50,
         help_text=_(
             'Array of taxes to be charged in the format [{"name":"VAT", "amount":2000}]'
         ),
@@ -407,9 +417,7 @@ class Invoice(BaseModel):
         return str(self.customer)
 
 
-class Wallet(BaseModel):
-
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+class Wallet(CustomerModel):
     wallet_id = models.CharField(
         _("Wallet Id"),
         max_length=50,
