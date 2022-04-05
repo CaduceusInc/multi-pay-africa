@@ -17,13 +17,11 @@ from django.contrib import admin
 from django.urls import path, include
 
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-]
 
-urlpatterns += [
+urlpatterns = [
     path('admin/', admin.site.urls),
     path('bulk_charges/', include('paystack.bulk_charges.urls')),
     path('settlement/', include('paystack.settlement.urls')),
-    path('subaccount/', include('paystack.subaccount.urls'))
+    path('subaccount/', include('paystack.subaccount.urls')),
+    
 ]
