@@ -21,3 +21,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('paystack/', include('paystack.urls')),
 ]
+
+urlpatterns += [
+    path('admin/', admin.site.urls),
+    path('settlement/', include('paystack.settlement.urls')),
+    path('subaccount/', include('paystack.subaccount.urls'))
+]
