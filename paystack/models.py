@@ -118,9 +118,16 @@ class Transaction(BaseModel):
 
 class Plan(BaseModel):
 
+    INTERVAL_CHOICES = (
+        ("weekly", "weekly"),
+        ("monthly", "monthly"),
+        ("biannually", "biannually"),
+        ("annually", "annually"),
+    )
+
     name = models.CharField(
         _("Plan name"),
-        max_length=200,
+        max_length=50,
         help_text=_(
             "Name of the be in kobo if currency is NGN, pesewas, if currency is GHS, and cents, if currency is ZAR"
         ),
@@ -129,6 +136,7 @@ class Plan(BaseModel):
     interval = models.CharField(
         _("Interval"),
         max_length=50,
+        choices= INTERVAL_CHOICES,
         help_text=_(
             "Interval in words. Valid intervals are: daily, weekly, monthly,biannually, annually"
         ),
@@ -181,8 +189,8 @@ class Plan(BaseModel):
 
 class Subscription(CustomerModel):
     plan = models.ForeignKey(Plan, on_delete=models.CASCADE)
-    authorization = models.JSONField(_("Authorization"), null=True, blank=True,help_text=_("Authorization of the transaction"))
-    start_date = models.DateTimeField(auto_now_add=True)
+    authorization = models.JSONField(_("Authorization"), null=True, help_text=_("Authorization of the transaction"))
+    start_date = models.DateTimeField(auto_now_add=False, help_text=_(" Start Date of subscription"))
 
     def __str__(self):
         return f"{self.customer} subscribed to {self.plan}"
@@ -266,8 +274,8 @@ class Subaccount(BaseModel):
         max_length=50,
     )
 
-    account_number = models.IntegerField(
-        _("Account number"), help_text="Bank Account Number"
+    account_number = models.CharField(
+        _("Account number"), max_length=100, help_text="Bank Account Number"
     )
 
     percentage_charge = models.FloatField(
@@ -283,13 +291,20 @@ class Subaccount(BaseModel):
     )
 
     primary_contact_email = models.EmailField(
-        _("Primary Contact Email"), help_text=_("A contact email for the subaccount")
+        _("Primary Contact Email"), help_text=_("A contact email for the subaccount"),
+        null=True,
+    )
+    primary_contact_name= models.CharField(
+        _("Primary Contact name"), help_text=_("A contact name for the subaccount"),
+        max_length=255,
+        null=True,
     )
 
     primary_contact_phone = models.CharField(
         _("primary_contact_phone"),
         help_text=_("A phone number to call for this subaccount"),
         max_length=20,
+        null=True,
     )
 
     metadata = models.JSONField(
