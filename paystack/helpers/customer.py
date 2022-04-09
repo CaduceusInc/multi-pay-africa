@@ -1,9 +1,28 @@
-from django.apps import apps
-from django.contrib.auth.models import AbstractUser
 from django.db import models
+from .base_model import BaseModel
+# from django.apps import apps
+# from django.contrib.auth.models import AbstractUser
 # from django.utils.translation import gettext_lazy as _
-# from django.contrib.auth.models import UserManager
+# from django.contrib.auth.models import 
 # from django.contrib.auth.hashers import make_password
+
+
+
+
+class CustomerModel(BaseModel):
+    """
+    Customer model
+    """
+    customer = models.EmailField(max_length=225, unique=True)
+    phone = models.CharField(max_length=20, unique=True)
+
+    class Meta:
+        verbose_name = 'Customer'
+        verbose_name_plural = 'Customers'
+        abstract = True
+
+
+
 
 
 # class CustomerManager(UserManager):
